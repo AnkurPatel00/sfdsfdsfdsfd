@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b765f63e9dc747b595ad568619e9e4e, type: 3}
+  m_Name: GameSpecificInstaller
+  m_EditorClassIdentifier: 
+  GameConfigVO:
+    CardDataConfig:
+    - CardIndex: 0
+      CardImage: {fileID: 21300000, guid: 99be766a6d1650d49acb1b12a2d1c53d, type: 3}
+    - CardIndex: 1
+      CardImage: {fileID: 21300000, guid: 9e2172871a7595c4a8e1f610ae25ba3c, type: 3}
+    - CardIndex: 2
+      CardImage: {fileID: 21300000, guid: c2f6f0234535eb6439d75155a85158f6, type: 3}
+    - CardIndex: 3
+      CardImage: {fileID: 21300000, guid: d1f96ebbe7689d349a78663742d39e75, type: 3}
+  AudioMapConfigVO:
+    AudioMap:
+    - AudioId: SFX_Flip
+      AudioClip: {fileID: 8300000, guid: bbad3fbb852b3413499483c2e2992151, type: 3}
+    - AudioId: SFX_Win
+      AudioClip: {fileID: 8300000, guid: c82b3523540054690a1ee93590f444ad, type: 3}
+    - AudioId: SFX_Lose
+      AudioClip: {fileID: 8300000, guid: 5ae8e0c9c5033442ca00ceeb26b6c244, type: 3}
+    - AudioId: SFX_Game_Over
+      AudioClip: {fileID: 8300000, guid: c4b360eba0911402192d1de46a8df119, type: 3}
