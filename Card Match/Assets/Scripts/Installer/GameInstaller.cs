@@ -1,4 +1,4 @@
-﻿using Game.CommonModules.Pooling.Audio;
+﻿using Game.CommonModules.Audio;
 using Game.CommonModules.Pooling;
 
 namespace Game.Installers

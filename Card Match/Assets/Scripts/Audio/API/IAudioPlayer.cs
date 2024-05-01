@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Game.CommonModules.Pooling.Audio
+namespace Game.CommonModules.Audio
 {
     public interface IAudioPlayer
     {

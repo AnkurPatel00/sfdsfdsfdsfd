@@ -8,6 +8,8 @@ namespace Game.Model
     public class CardStorageHolder
     {
         public List<CardDataStorage> cardDataStorage;
+        public int Score;
+        public int TotalClicked;
 
         public CardStorageHolder(List<CardDataStorage> cardDataStorages)
         {

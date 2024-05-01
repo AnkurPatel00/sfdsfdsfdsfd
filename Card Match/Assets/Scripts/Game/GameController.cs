@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
 using Game.CommonModules.Pooling;
-using Game.CommonModules.Pooling.Audio;
+using Game.CommonModules.Audio;
 using Game.Grid;
 using Game.Installers;
 using Game.Model;
@@ -36,16 +36,15 @@ namespace Game.Controller
         private IAudioPlayer audioPlayer;
         private AudioMapConfigVO audioMapConfigVO;
         private GridManager gridManager;
-        
+
         public Action<int> OnScoreChanged;
         public Action<float> OnAccuracyUpdated;
-        
-        [HideInInspector]
-        public bool CanClick;
-        [HideInInspector]
-        public bool isGameOver;
-        [HideInInspector]
-        public int TotalClicked;
+
+        [HideInInspector] public bool CanClick;
+        [HideInInspector] public bool isGameOver;
+        [HideInInspector] public int TotalClicked;
+
+        private const string STORAGE_KEY = "cardData";
 
         [Inject]
         private void Init(IPoolManager poolManager, GameConfigVO gameConfig, IAudioPlayer audioPlayer,
@@ -70,69 +69,71 @@ namespace Game.Controller
 
             SetGrid();
 
-            bool hasData = false;
-            if (PlayerPrefs.HasKey("cardData"))
-            {
-                var storageHolder = JsonUtility.FromJson<CardStorageHolder>(PlayerPrefs.GetString("cardData"));
-                cardDataStorage = storageHolder.cardDataStorage;
-                if (cardDataStorage.Count > 0)
-                {
-                    hasData = true;
-                }
+            bool hasData = LoadFromStorage();
 
+            if (hasData) return;
+            
+            var totalCards = rows * columns;
+            var cardValues = GenerateCardValues(totalCards / 2);
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    var cardController = SpawnCard(j, i);
+
+                    int randomIndex = Random.Range(0, cardValues.Count);
+                    int cardValue = cardValues[randomIndex];
+                    cardController.SetCardValue(cardValue, gameConfig.CardDataConfig[cardValue].CardImage,
+                        new Vector2(j, i));
+                    cardValues.RemoveAt(randomIndex);
+
+                    cardDataStorage.Add(new CardDataStorage(new Vector2(j, i), cardValue));
+                }
+            }
+        }
+
+        private bool LoadFromStorage()
+        {
+            bool hasData = false;
+            
+            if (!PlayerPrefs.HasKey(STORAGE_KEY)) return hasData;
+            
+            var storageHolder = JsonUtility.FromJson<CardStorageHolder>(PlayerPrefs.GetString(STORAGE_KEY));
+            cardDataStorage = storageHolder.cardDataStorage;
+            if (cardDataStorage.Count > 0)
+            {
+                hasData = true;
+            }
+
+            if (hasData)
+            {
+                score = storageHolder.Score;
+                TotalClicked = storageHolder.TotalClicked;
+                    
                 foreach (var cardData in cardDataStorage)
                 {
                     var cardController = SpawnCard(cardData.coord.x, cardData.coord.y);
                     cardController.SetCardValue(cardData.cardIndex,
                         gameConfig.CardDataConfig[cardData.cardIndex].CardImage, cardData.coord);
-
-                    cardController.transform.position =
-                        gridManager.GetPosition((int)cardData.coord.x, (int)cardData.coord.y);
-
-                    StartCoroutine(DelayedCall(viewTime, () =>
-                    {
-                        cardController.FlipCard(true);
-                        CanClick= true;
-                    }));
                 }
             }
 
-            if (!hasData)
-            {
-                var totalCards = rows * columns;
-                var cardValues = GenerateCardValues(totalCards / 2); // Generate card values for matching pairs
-
-                for (int i = 0; i < rows; i++)
-                {
-                    for (int j = 0; j < columns; j++)
-                    {
-                        var cardController = SpawnCard(j, i);
-
-                        int randomIndex = Random.Range(0, cardValues.Count);
-                        int cardValue = cardValues[randomIndex];
-                        cardController.SetCardValue(cardValue, gameConfig.CardDataConfig[cardValue].CardImage,
-                            new Vector2(j, i));
-                        cardValues.RemoveAt(randomIndex);
-
-                        cardController.transform.position = gridManager.GetPosition(j, i);
-    
-                        cardDataStorage.Add(new CardDataStorage(new Vector2(j, i), cardValue));
-
-                        StartCoroutine(DelayedCall(viewTime, () =>
-                        {
-                            cardController.FlipCard(true);
-                            CanClick= true;
-                        }));
-                    }
-                }
-            }
+            return hasData;
         }
 
         private CardController SpawnCard(float x, float y)
         {
             GameObject newCard = poolManager.GetFromPool("card").gameObject;
             newCard.name = $"Card [{x},{y}]";
-            return newCard.GetComponent<CardController>();
+            newCard.transform.position = gridManager.GetPosition((int)x, (int)y);
+            var cardController = newCard.GetComponent<CardController>();
+            StartCoroutine(DelayedCall(viewTime, () =>
+            {
+                cardController.FlipCard(true);
+                CanClick = true;
+            }));
+            return cardController;
         }
 
         private void SetGrid()
@@ -220,7 +221,7 @@ namespace Game.Controller
 
             if (flippedCards.Count > 1)
             {
-                score = 5 * flippedCards.Count;
+                score -= 5 * flippedCards.Count;
                 audioPlayer.Play(audioMapConfigVO.GetAudioClip(loseSoundId));
 
                 flippedCards.ForEach(x => x.FlipCard());
@@ -228,10 +229,10 @@ namespace Game.Controller
             }
 
             OnScoreChanged?.Invoke(score);
-            
+
             var accuracy = ((rows * columns) - cardDataStorage.Count) * 100 / (float)TotalClicked;
             OnAccuracyUpdated?.Invoke(TotalClicked == 0 ? 0 : accuracy);
-            
+
             if (cardDataStorage.Count == 0)
             {
                 isGameOver = true;
@@ -251,14 +252,18 @@ namespace Game.Controller
         {
             if (!isGameOver)
             {
-                var storage = new CardStorageHolder(cardDataStorage);
+                var storage = new CardStorageHolder(cardDataStorage)
+                {
+                    Score = score,
+                    TotalClicked = TotalClicked
+                };
                 var json = JsonUtility.ToJson(storage);
 
-                PlayerPrefs.SetString("cardData", json);
+                PlayerPrefs.SetString(STORAGE_KEY, json);
             }
             else
             {
-                PlayerPrefs.DeleteKey("cardData");
+                PlayerPrefs.DeleteKey(STORAGE_KEY);
             }
         }
     }

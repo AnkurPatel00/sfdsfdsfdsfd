@@ -1,5 +1,5 @@
 using Game.CommonModules.Pooling;
-using Game.CommonModules.Pooling.Audio;
+using Game.CommonModules.Audio;
 using Game.Controller;
 using Game.Installers;
 using UnityEngine;

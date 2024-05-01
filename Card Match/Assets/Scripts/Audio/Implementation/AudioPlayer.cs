@@ -1,34 +1,34 @@
 ﻿using UnityEngine;
 
-namespace Game.CommonModules.Pooling.Audio
+namespace Game.CommonModules.Audio
 {
     public class AudioPlayer : IAudioPlayer
     {
-        private AudioSource pAudioSource;
+        private AudioSource audioSource;
 
-        private AudioSource _audioSource
+        private AudioSource pAudioSource
         {
             get
             {
-                if (pAudioSource == null)
-                    pAudioSource = Camera.main.GetComponent<AudioSource>();
-                return pAudioSource;
+                if (audioSource == null)
+                    audioSource = Camera.main.GetComponent<AudioSource>();
+                return audioSource;
             }
         }
 
         public void Play(AudioClip clip, float volume = 1)
         {
-            _audioSource.PlayOneShot(clip, volume);
+            pAudioSource.PlayOneShot(clip, volume);
         }
 
         public void Pause()
         {
-            _audioSource.Pause();
+            pAudioSource.Pause();
         }
 
         public void UnPause()
         {
-            _audioSource.UnPause();
+            pAudioSource.UnPause();
         }
     }
 }
