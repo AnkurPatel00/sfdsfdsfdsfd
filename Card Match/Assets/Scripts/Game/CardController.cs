@@ -5,100 +5,94 @@ using Game.Installers;
 using UnityEngine;
 using Zenject;
 
-public class CardController : PoolableObjectView
+namespace Game.Card
 {
-    [SerializeField] private float flipTime = 1.0f;
-    [SerializeField] private SpriteRenderer frontRenderer;
-    [SerializeField] private SpriteRenderer backRenderer;
-    [SerializeField] private string flipSoundId;
-
-    private bool isFlipping;
-    private bool isFront = true;
-    private Quaternion targetRotation;
-
-    private int cardIndex;
-    private Vector2 coord;
-
-    private GameController gameController;
-    private IAudioPlayer audioPlayer;
-    private AudioMapConfigVO audioMapConfigVO;
-
-    [Inject]
-    private void Init(GameController gameController, IAudioPlayer audioPlayer, AudioMapConfigVO audioMapConfigVO)
+    public class CardController : PoolableObjectView
     {
-        this.gameController = gameController;
-        this.audioPlayer = audioPlayer;
-        this.audioMapConfigVO = audioMapConfigVO;
-    }
+        [SerializeField] private float flipTime = 1.0f;
+        [SerializeField] private SpriteRenderer frontRenderer;
+        [SerializeField] private SpriteRenderer backRenderer;
+        [SerializeField] private string flipSoundId;
 
-    private void Start()
-    {
-        targetRotation = transform.rotation;
-    }
+        private bool isFlipping;
+        private bool isFront = true;
 
-    public void FlipCard(bool init = false)
-    {
-        if (isFlipping) return;
+        private int cardIndex;
+        private Vector2 coord;
 
-        isFlipping = true;
-        isFront = !isFront;
+        private GameController gameController;
+        private IAudioPlayer audioPlayer;
+        private AudioMapConfigVO audioMapConfigVO;
 
-        float yRotation = isFront ? 0 : 180;
-        targetRotation = Quaternion.Euler(0, yRotation, 0);
-
-        if (!init)
+        [Inject]
+        private void Init(GameController gameController, IAudioPlayer audioPlayer, AudioMapConfigVO audioMapConfigVO)
         {
-            audioPlayer?.Play(audioMapConfigVO.GetAudioClip(flipSoundId));
+            this.gameController = gameController;
+            this.audioPlayer = audioPlayer;
+            this.audioMapConfigVO = audioMapConfigVO;
         }
 
-        LeanTween.rotate(gameObject, new Vector3(0, yRotation, 0), flipTime).setOnComplete(() =>
+        public void FlipCard(bool init = false)
+        {
+            if (isFlipping) return;
+
+            isFlipping = true;
+            isFront = !isFront;
+
+            float yRotation = isFront ? 0 : 180;
+
+            if (!init)
+            {
+                audioPlayer?.Play(audioMapConfigVO.GetAudioClip(flipSoundId));
+            }
+
+            LeanTween.rotate(gameObject, new Vector3(0, yRotation, 0), flipTime).setOnComplete(() =>
+            {
+                isFlipping = false;
+                if (isFront)
+                    gameController.OnCardFlipped(this, init);
+            });
+        }
+
+        private void OnMouseDown()
+        {
+            if (gameController.CanClick)
+            {
+                gameController.TotalClicked++;
+                FlipCard();
+            }
+        }
+
+        public void Reset()
         {
             isFlipping = false;
-            if (isFront)
-                gameController.OnCardFlipped(this, init);
-        });
-    }
+            isFront = true;
+            cardIndex = -1;
+            coord = Vector2.one * -1;
 
-    private void OnMouseDown()
-    {
-        if (gameController.CanClick)
-        {
-            gameController.TotalClicked++;
-            FlipCard();
+            SendToPool();
         }
-    }
 
-    public void Reset()
-    {
-        isFlipping = false;
-        isFront = true;
-        targetRotation = Quaternion.Euler(0, 0, 0);
-        transform.rotation = targetRotation;
-        cardIndex = -1;
-        coord = Vector2.one * -1;
+        public void SetCardValue(int value, Sprite sprite, Vector2 coord)
+        {
+            cardIndex = value;
+            frontRenderer.sprite = sprite;
+            this.coord = coord;
+        }
 
-        SendToPool();
-    }
+        public int GetCardValue()
+        {
+            return cardIndex;
+        }
 
-    public void SetCardValue(int value, Sprite sprite, Vector2 coord)
-    {
-        cardIndex = value;
-        frontRenderer.sprite = sprite;
-        this.coord = coord;
-    }
+        public Vector2 GetCoord()
+        {
+            return coord;
+        }
 
-    public int GetCardValue()
-    {
-        return cardIndex;
-    }
-    
-    public Vector2 GetCoord()
-    {
-        return coord;
-    }
-    
-    public Sprite GetFrontRenderer()
-    {
-        return frontRenderer.sprite;
+        public Sprite GetFrontRenderer()
+        {
+            return frontRenderer.sprite;
+        }
     }
 }

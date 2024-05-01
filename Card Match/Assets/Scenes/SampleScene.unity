@@ -971,7 +971,7 @@ MonoBehaviour:
   rows: 4
   columns: 4
   cardSpacing: 1
-  viewTime: 2
+  viewTime: 10
   winSoundId: SFX_Win
   loseSoundId: SFX_Lose
   gameOverSoundId: SFX_Game_Over

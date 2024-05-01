@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
+using Game.Card;
 using Game.CommonModules.Pooling;
 using Game.CommonModules.Audio;
 using Game.Grid;
@@ -110,6 +111,8 @@ namespace Game.Controller
             {
                 score = storageHolder.Score;
                 TotalClicked = storageHolder.TotalClicked;
+                
+               InvokeScoreAndAccuracy();
                     
                 foreach (var cardData in cardDataStorage)
                 {
@@ -228,10 +231,7 @@ namespace Game.Controller
                 flippedCards.Clear();
             }
 
-            OnScoreChanged?.Invoke(score);
-
-            var accuracy = ((rows * columns) - cardDataStorage.Count) * 100 / (float)TotalClicked;
-            OnAccuracyUpdated?.Invoke(TotalClicked == 0 ? 0 : accuracy);
+            InvokeScoreAndAccuracy();
 
             if (cardDataStorage.Count == 0)
             {
@@ -240,7 +240,16 @@ namespace Game.Controller
                 CanClick = false;
                 TotalClicked = 0;
                 audioPlayer.Play(audioMapConfigVO.GetAudioClip(gameOverSoundId));
+                PlayerPrefs.DeleteKey(STORAGE_KEY);
             }
+        }
+
+        private void InvokeScoreAndAccuracy()
+        {
+            OnScoreChanged?.Invoke(score);
+
+            var accuracy = ((rows * columns) - cardDataStorage.Count) * 100 / (float)TotalClicked;
+            OnAccuracyUpdated?.Invoke(TotalClicked == 0 ? 0 : accuracy);
         }
 
         private void OnApplicationQuit()
