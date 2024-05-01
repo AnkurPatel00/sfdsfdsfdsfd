@@ -44,8 +44,6 @@ namespace Game.Grid
 
         public Vector3 GetPosition(int i, int j)
         {
-            float offset = this.offset;
-
             float downstarter = -1 * ((verticalLength - 1) * (SpriteHeight + offset)) / 2f;
             float leftstarter = -1 * ((horizontalLength - 1) * (SpriteWidth + offset)) / 2f;
             float x, y;
